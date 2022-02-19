@@ -1,0 +1,15 @@
+// this is specific for the test runner and not
+// for the build system, please use only if you know
+// what you are doing
+{
+	"presets": [
+		[
+			"@babel/preset-env",
+			{
+				"loose": true,
+				"modules": "commonjs",
+				"targets": {"node": "current"}
+			}
+		]
+	]
+}
