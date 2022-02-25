@@ -1,17 +1,16 @@
 {
-	"name": "@barelyhuman/eslint-plugin-react",
+	"name": "@barelyhuman/eslint-plugin",
 	"version": "0.0.1",
 	"license": "MIT",
 	"author": "Reaper <ahoy@barelyhuman.dev>",
 	"exports": {
 		".": {
-			"require": "./dist/index.js",
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.ts"
+			"require": "./index.js",
+			"import": "./index.mjs"
 		}
 	},
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
+	"main": "./index.js",
+	"module": "./index.mjs",
 	"keywords": [
 		"eslint",
 		"eslintplugin"
@@ -23,7 +22,7 @@
 		"prepublishOnly": "yarn build",
 		"size": "shx rm .sizesnap.json; sizesnap",
 		"sortpkg": "npx sort-package-json dist/package.json",
-		"test": "tape -r esbuild-register tests/* ",
+		"test": "tape -r esbuild-register tests/* | tap-spec",
 		"watch": "yarn build -- --watch src"
 	},
 	"prettier": "@barelyhuman/prettier-config",
@@ -41,7 +40,7 @@
 		"prettier": "^2.5.1",
 		"shx": "^0.3.4",
 		"sizesnap": "^0.1.1",
-		"tap-dot": "^2.0.0",
+		"tap-spec": "^5.0.0",
 		"tape": "^5.5.2",
 		"tsup": "^5.11.13",
 		"typescript": "^4.5.5"

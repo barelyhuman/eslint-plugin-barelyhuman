@@ -6,9 +6,9 @@ export const rules = {
 
 export const configs = {
 	recommended: {
-		plugins: ['@barelyhuman/eslint-plugin-react'],
+		plugins: ['@barelyhuman/eslint-plugin'],
 		rules: {
-			'barelyhuman/react-hook-precedence': 'warn',
+			'@barelyhuman/react-hook-precedence': 'warn',
 		},
 	},
 }

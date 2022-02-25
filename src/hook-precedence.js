@@ -1,18 +1,61 @@
-const precendenceOrder = {
+const precedenceOrder = {
 	useState: 0,
 	useRef: 1,
 	useCallback: 2,
 	useEffect: 3,
 }
 
-export const PRECEDENCE_ERROR = `Your hooks should follow the following order  ${Object.keys(
-	precendenceOrder,
-)
-	.join('->')
-	.replace(/(->)$/, '')}`
+export const PRECEDENCE_ERROR = (elementOne, elementTwo) =>
+	`${elementOne} should be after ${elementTwo}. It's recommended to follow the following order ${Object.keys(
+		precedenceOrder,
+	).join(', ')}`
+
+const getClosestExpression = node => {
+	if (node.type === 'ExpressionStatement') {
+		return node
+	}
+	return getClosestExpression(node.parent)
+}
+
+const getVariableDeclaration = node => {
+	if (!node) {
+		return false
+	}
+	if (node.type === 'VariableDeclaration') {
+		return node
+	}
+	return getVariableDeclaration(node.parent)
+}
+
+const getHookBasedBlock = node => {
+	let block = false
+	switch (node.name) {
+		case 'useEffect': {
+			block = getClosestExpression(node)
+			break
+		}
+		case 'useState': {
+			block = getVariableDeclaration(node)
+			break
+		}
+		case 'useRef': {
+			block = getVariableDeclaration(node)
+			break
+		}
+		case 'useCallback': {
+			block = getVariableDeclaration(node)
+			if (!block) {
+				block = getClosestExpression(node)
+			}
+			break
+		}
+	}
+	return block
+}
 
 export default {
 	meta: {
+		fixable: 'code',
 		type: 'layout',
 		docs: {
 			description: 'Informs about better laying out of generic react hooks',
@@ -21,28 +64,56 @@ export default {
 		},
 	},
 	create(context) {
-		let currentComponentOrder = []
+		let currentHooksOrder = []
 		return {
 			Identifier(node) {
-				const hooksToGrab = Object.keys(precendenceOrder)
+				if (node.parent.type === 'ImportSpecifier') {
+					return
+				}
+
+				const hooksToGrab = Object.keys(precedenceOrder)
 
 				if (hooksToGrab.indexOf(node.name) > -1) {
-					currentComponentOrder.push(node)
+					currentHooksOrder.push(node)
 				}
 			},
 			'Program:exit': function () {
-				for (const [index, element] of currentComponentOrder.entries()) {
-					const nextItem = currentComponentOrder[index + 1] || false
-					if (!nextItem) {
-						continue
-					}
+				for (let i = 0; i < currentHooksOrder.length; i++) {
+					const element = currentHooksOrder[i]
 
-					if (
-						precendenceOrder[element.name] > precendenceOrder[nextItem.name]
-					) {
-						return context.report({
+					for (let j = currentHooksOrder.length; j > i; j--) {
+						const nextItem = currentHooksOrder[j] || false
+
+						if (!nextItem) {
+							continue
+						}
+
+						if (
+							precedenceOrder[element.name] <= precedenceOrder[nextItem.name]
+						) {
+							continue
+						}
+
+						context.report({
 							node: element,
-							message: PRECEDENCE_ERROR,
+							message: PRECEDENCE_ERROR(element.name, nextItem.name),
+							fix: function* (fixer) {
+								const sourceBlock = getHookBasedBlock(element)
+								const targetBlock = getHookBasedBlock(nextItem)
+
+								if (!targetBlock || !sourceBlock) {
+									return
+								}
+
+								const sourceBlockCode = context
+									.getSourceCode()
+									.getText(sourceBlock)
+
+								yield fixer.remove(sourceBlock)
+								yield fixer.insertTextAfter(targetBlock, '\n' + sourceBlockCode)
+
+								return
+							},
 						})
 					}
 				}
