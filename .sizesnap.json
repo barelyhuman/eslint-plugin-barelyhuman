@@ -1,4 +1,14 @@
 {
+	"dist/LICENSE": {
+		"size": "1.114KB",
+		"brotli": "504B",
+		"gzip": "681B"
+	},
+	"dist/README.md": {
+		"size": "694B",
+		"brotli": "294B",
+		"gzip": "397B"
+	},
 	"dist/index.js": {
 		"size": "1.83KB",
 		"brotli": "881B",
